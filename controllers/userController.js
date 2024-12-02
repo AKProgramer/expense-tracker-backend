@@ -6,14 +6,38 @@ const User = require('../models/User');
 exports.registerUser = async (req, res) => {
   const { email, password, username, fullName } = req.body;
   try {
+    // Check if the email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already exists. Please use a different email.' });
+    }
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create a new user
     const newUser = new User({ email, password: hashedPassword, username, fullName });
+
+    // Save the user to the database
     await newUser.save();
-    res.status(201).json({ message: 'User registered successfully' });
+
+    // Generate a token for the new user
+    const token = generateToken({ id: newUser._id });
+
+    // Respond with success message and token
+    res.status(201).json({ 
+      message: 'Signup successful', 
+      userId: newUser._id, 
+      token 
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Registration failed', details: err.message });
+    res.status(500).json({ 
+      error: 'Registration failed', 
+      details: err.message 
+    });
   }
 };
+
 
 // Login an existing user
 exports.loginUser = async (req, res) => {
@@ -24,7 +48,7 @@ exports.loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     const token = generateToken({ id: user._id });
-    res.status(200).json({ message: 'Login successful', token });
+    res.status(200).json({ message: 'Login successful',userId : user._id, token });
   } catch (err) {
     res.status(500).json({ error: 'Login failed', details: err.message });
   }

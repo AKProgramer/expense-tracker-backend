@@ -3,8 +3,9 @@ const Approval = require('../models/Approval');
 const Group = require('../models/Group');
 
 exports.getApprovals = async (req, res) => {
+  const userId = req.params.userId;
   try {
-    const approvals = await Approval.find({ toUser: req.user.id }).populate('group fromUser');
+    const approvals = await Approval.find({ toUser: userId }).populate('group fromUser');
     res.status(200).json({ approvals });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch approvals', details: err.message });

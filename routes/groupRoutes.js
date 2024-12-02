@@ -5,7 +5,7 @@ const { createGroup, getUserGroups, joinGroup } = require('../controllers/groupC
 const router = express.Router();
 
 router.post('/create', verifyToken, createGroup);
-router.get('/', verifyToken, getUserGroups);
+router.get('/:userId', verifyToken, getUserGroups);
 
 
 module.exports = router;
