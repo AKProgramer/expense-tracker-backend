@@ -37,5 +37,3 @@ exports.getUserGroups = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch groups', details: err.message });
   }
 };
-
- 

@@ -23,7 +23,4 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/approvals', approvalRoutes);
 
-
-
-
 app.listen(process.env.PORT, console.log(`Server is running on PORT: ${process.env.PORT.blue}`))
