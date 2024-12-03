@@ -3,21 +3,21 @@ const Group = require('../models/Group');
 const Expense = require('../models/Expense');
 
 exports.addExpense = async (req, res) => {
+  console.log(req.body);
   const {
+    userId,
     groupId,
-    expenseName,
     totalAmount,
     splitType,
     splitDetails
   } = req.body;
-
+  expenseName =  'Untitled Expense';
   try {
     const balances = [];
-
     if (splitType === 'percentage') {
       // Calculate amounts based on percentage split
       splitDetails.forEach((split) => {
-        const amountOwed = (split.percentage / 100) * totalAmount;
+        const amountOwed = (split.amount / 100) * totalAmount;
         balances.push({
           user: split.user,
           amount: amountOwed,
@@ -32,7 +32,7 @@ exports.addExpense = async (req, res) => {
           amount: split.amount,
         });
       });
-    } else if (splitType === 'equally') {
+    } else if (splitType === 'equal') {
       // Split totalAmount equally among all users in splitDetails
       const equalAmount = totalAmount / splitDetails.length;
       splitDetails.forEach((split) => {
@@ -53,7 +53,7 @@ exports.addExpense = async (req, res) => {
       expenseName,
       totalAmount,
       group: groupId,
-      createdBy: req.user.id,
+      createdBy: userId,
       splitDetails, // Store split details
       balances, // Store balances
     });
@@ -70,6 +70,7 @@ exports.addExpense = async (req, res) => {
       expense
     });
   } catch (err) {
+    console.log(err.message)
     res.status(500).json({
       error: 'Failed to add expense',
       details: err.message
@@ -134,11 +135,8 @@ exports.settleUp = async (req, res) => {
 
 // Fetch amounts user owes and others owe to the user
 exports.getUserOweDetails = async (req, res) => {
+  const userId = req.params.userId;
   try {
-    const {
-      userId
-    } = req.body; // Assuming user ID is available in `req.user`
-
     // Fetch amounts the user owes to others
     const owedByUser = await Expense.aggregate([{
         $unwind: '$splitDetails'

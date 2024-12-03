@@ -98,12 +98,13 @@ exports.deleteUser = async (req, res) => {
 // Get all users
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find({}, '-password'); // Exclude password for security
+    const users = await User.find({}, 'username _id'); // Include only username and id
     res.status(200).json(users);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch users', details: err.message });
   }
 };
+
 
 // Get a user by ID
 exports.getUser = async (req, res) => {

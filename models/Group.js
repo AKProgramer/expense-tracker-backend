@@ -39,4 +39,5 @@ groupSchema.statics.createGroupWithApproval = async function (groupData, approva
     throw err;
   }
 };
+
 module.exports = mongoose.model('Group', groupSchema);

@@ -5,7 +5,7 @@ const { addExpense, settleUp, getAllExpenses, getUserOweDetails } = require('../
 const router = express.Router();
 
 // Route for adding an expense
-router.post('/add', verifyToken, addExpense);
+router.post('/add', addExpense);
 
 // Route for fetching all expenses in a group
 router.get('/:groupId', verifyToken, getAllExpenses);
@@ -14,6 +14,8 @@ router.get('/:groupId', verifyToken, getAllExpenses);
 router.post('/settle-up', verifyToken, settleUp);
 
 // Route for fetching user owe details
-router.get('/owe', verifyToken, getUserOweDetails);
+router.get('/owe/:userId', getUserOweDetails);
+
+  
 
 module.exports = router;
