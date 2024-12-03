@@ -66,20 +66,18 @@ exports.getMemberDetails = async (req, res) => {
   }
 }
 exports.calculateUserBalances = async (req, res) => {
-  const { groupId } = req.params;
-  const {userId} = req.params; // Assuming authenticated user's ID is in req.user
+  const { groupId, userId } = req.params;
 
   try {
     // Fetch the group and its expenses
-    const groupName = await Group.findById(groupId).groupName;
-    console.log(groupName);
     const group = await Group.findById(groupId).populate('expenses');
     if (!group) {
       return res.status(404).json({ error: 'Group not found' });
     }
 
-    const toGiveDetails = {}; // Map of { userId: { username, amount } }
-    const toTakeDetails = {}; // Map of { userId: { username, amount } }
+    const groupName = group.groupName;
+    const balances = [];
+    let totalOwed = 0; // Variable to track the total amount the user owes
 
     // Iterate over each expense in the group
     for (const expenseId of group.expenses) {
@@ -87,49 +85,46 @@ exports.calculateUserBalances = async (req, res) => {
         .populate('splitDetails.user', 'username')
         .populate('createdBy', 'username');
 
-      // Process "to give" details
+      // Check "to give" for the current user
       expense.splitDetails.forEach((split) => {
         if (split.user._id.toString() === userId) {
-          const createdBy = expense.createdBy;
-          if (!toGiveDetails[createdBy._id]) {
-            toGiveDetails[createdBy._id] = { username: createdBy.username, amount: 0 };
-          }
-          toGiveDetails[createdBy._id].amount += split.amount; // Add amount user owes
+          const balance = {
+            expenseName: expense.expenseName,
+            action: 'give',
+            toUser: expense.createdBy.username,
+            amount: split.amount,
+            expenseId: expense._id, // Include the expenseId
+            balanceId: split._id, // Include the balanceId (from the split entry)
+          };
+          balances.push(balance);
+          totalOwed += split.amount; // Add to the total owed amount
         }
       });
 
-      // Process "to take" details
+      // Check "to take" for the current user
       if (expense.createdBy._id.toString() === userId) {
         expense.splitDetails.forEach((split) => {
           if (split.user._id.toString() !== userId) {
-            if (!toTakeDetails[split.user._id]) {
-              toTakeDetails[split.user._id] = { username: split.user.username, amount: 0 };
-            }
-            toTakeDetails[split.user._id].amount += split.amount; // Add amount others owe
+            const balance = {
+              expenseName: expense.expenseName,
+              action: 'take',
+              fromUser: split.user.username,
+              amount: split.amount,
+              expenseId: expense._id, 
+              balanceId: split._id,  
+            };
+            balances.push(balance);
           }
         });
       }
     }
 
-    // Convert the details into arrays for easy parsing on the frontend
-    const toGive = Object.values(toGiveDetails);
-    const toTake = Object.values(toTakeDetails);
-
-    // Calculate total amounts
-    const totalToGive = toGive.reduce((sum, user) => sum + user.amount, 0);
-    const totalToTake = toTake.reduce((sum, user) => sum + user.amount, 0);
-
-    // Send response with detailed balances
-    return res.status(200).json({
-      groupName,
-      groupId,
-      totalToGive,
-      totalToTake,
-      toGive,
-      toTake,
-    });
+    // Send response with user balances, total owed, and relevant IDs
+    return res.status(200).json({ groupName, groupId, totalOwed, balances });
   } catch (error) {
-    console.error('Error calculating user balances:', error);
+    console.error('Error fetching user balances:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+

@@ -11,7 +11,7 @@ router.post('/add', addExpense);
 router.get('/:groupId', verifyToken, getAllExpenses);
 
 // Route for settling up a specific balance within an expense
-router.post('/settle-up', verifyToken, settleUp);
+router.post('/settle-up', settleUp);
 
 // Route for fetching user owe details
 router.get('/owe/:userId', getUserOweDetails);

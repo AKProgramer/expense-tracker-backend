@@ -1,3 +1,4 @@
+const mongoose = require('mongoose'); 
 // controllers/expenseController.js
 const Group = require('../models/Group');
 const Expense = require('../models/Expense');
@@ -93,49 +94,44 @@ exports.getAllExpenses = async (req, res) => {
   }
 };
 
-// controllers/expenseController.js
+
+
 exports.settleUp = async (req, res) => {
-  const { expenseId, userId, amount } = req.body; // Expense ID, user to settle with, and the settlement amount.
+  const { expenseId, balanceId } = req.body;
+
+  if (!expenseId || !balanceId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
 
   try {
-    // Fetch the expense by ID
+    // Find the expense by expenseId
     const expense = await Expense.findById(expenseId);
-
     if (!expense) {
       return res.status(404).json({ error: 'Expense not found' });
     }
 
-    // Find the balance entry for the user
-    const balanceIndex = expense.balances.findIndex(
-      (balance) => balance.user.toString() === userId
+    // Convert balanceId to ObjectId for comparison
+    const balanceIdObject = mongoose.Types.ObjectId(balanceId);
+
+    // Remove the balance from the 'balances' array using the balanceId
+    expense.balances = expense.balances.filter(balance => 
+      balance._id.toString() !== balanceIdObject.toString()
     );
-
-    if (balanceIndex === -1) {
-      return res.status(404).json({ error: 'Balance not found for the user' });
-    }
-
-    // Update the balance amount
-    expense.balances[balanceIndex].amount -= amount;
-
-    // If the balance is completely settled, remove it
-    if (expense.balances[balanceIndex].amount <= 0) {
-      expense.balances.splice(balanceIndex, 1);
-    }
 
     // Save the updated expense
     await expense.save();
 
-    res.status(200).json({ message: 'Balance settled successfully', expense });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to settle balance', details: err.message });
+    res.status(200).json({ message: 'Balance settled and removed successfully' });
+  } catch (error) {
+    console.error('Error settling expense:', error);
+    res.status(500).json({ error: 'Failed to settle expense' });
   }
 };
 
 
 // Fetch amounts user owes and others owe to the user
 exports.getUserOweDetails = async (req, res) => {
-  const userId = req.params.userId;
+  const userId = req  .params.userId;
   try {
     // Fetch amounts the user owes to others
     const owedByUser = await Expense.aggregate([{
