@@ -4,7 +4,7 @@ const Group = require('../models/Group');
 const Expense = require('../models/Expense');
 
 exports.addExpense = async (req, res) => {
-  console.log(req.body);
+ 
   const {
     userId,
     groupId,
@@ -99,6 +99,7 @@ exports.getAllExpenses = async (req, res) => {
 exports.settleUp = async (req, res) => {
   const { expenseId, balanceId } = req.body;
 
+
   if (!expenseId || !balanceId) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
@@ -111,12 +112,14 @@ exports.settleUp = async (req, res) => {
     }
 
     // Convert balanceId to ObjectId for comparison
-    const balanceIdObject = mongoose.Types.ObjectId(balanceId);
+    const balanceIdObject = balanceId;
 
     // Remove the balance from the 'balances' array using the balanceId
-    expense.balances = expense.balances.filter(balance => 
-      balance._id.toString() !== balanceIdObject.toString()
+ 
+    expense.splitDetails = expense.splitDetails.filter(balance => 
+      balance._id.toString() !== balanceIdObject
     );
+  
 
     // Save the updated expense
     await expense.save();
