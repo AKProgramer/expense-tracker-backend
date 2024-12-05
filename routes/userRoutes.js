@@ -9,5 +9,4 @@ router.get('/getAllUsers', getUsers); // Get all users
 router.get('/user', verifyToken, getUser); // Get user by ID
 router.put('/:userId', verifyToken, updateUser); // Update user details
 router.delete('/:userId', verifyToken, deleteUser); // Delete a user
-
 module.exports = router;
