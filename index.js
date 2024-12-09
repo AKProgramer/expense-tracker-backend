@@ -12,12 +12,9 @@ require('dotenv').config();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL, // Replace with your frontend's URL
-    credentials: true, // Allow cookies and other credentials
-  })
-);
+app.use(cors({ origin: process.env.FRONTEND_URL || '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+   credentials: true }));
 
 connect();
 
