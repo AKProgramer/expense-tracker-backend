@@ -19,13 +19,13 @@ app.use(
   );
  
 connect();
-app.get('/api/', (req, res) => {
+app.get('/', (req, res) => {
     res.send('Hello World');
 })
 app.use('/api/users', userRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/approvals', approvalRoutes);
-app.listen(3000, () => {
+app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`.yellow.bold);
 })
